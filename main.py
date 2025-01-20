@@ -19,9 +19,6 @@ templates_dir.mkdir(exist_ok=True)
 
 # Save the HTML template
 html_path = templates_dir / "index.html"
-# with open(html_path, "w") as f:
-#     f.write("""<!DOCTYPE html>
-# <html lang="en">...""")  # Copy the entire HTML content here
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
