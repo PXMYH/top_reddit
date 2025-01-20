@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Data Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Reddit Data Viewer</h1>
+            <p class="text-gray-600 mt-2">View top posts from selected subreddits</p>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <form id="redditForm" class="space-y-6">
+                <div>
+                    <label for="subreddit" class="block text-sm font-medium text-gray-700">Subreddit</label>
+                    <select id="subreddit" name="subreddit" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md">
+                        <option value="bogleheads">r/bogleheads</option>
+                        <option value="financialindependence">r/financialindependence</option>
+                        <option value="fire">r/fire</option>
+                        <option value="formula1">r/formula1</option>
+                        <option value="investing">r/investing</option>
+                        <option value="localllama">r/localllama</option>
+                        <option value="personalfinance">r/personalfinance</option>
+                        <option value="personalfinancecanada">r/personalfinancecanada</option>
+                        <option value="stocks">r/stocks</option>
+                        <option value="wealthsimple">r/wealthsimple</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="timeframe" class="block text-sm font-medium text-gray-700">Time Range</label>
+                    <select id="timeframe" name="timeframe" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md">
+                        <option value="hour">Past Hour</option>
+                        <option value="day">Past 24 Hours</option>
+                        <option value="week">Past Week</option>
+                        <option value="month">Past Month</option>
+                        <option value="year" selected>Past Year</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Fetch Data
+                </button>
+            </form>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="space-y-4 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Results</h2>
+            <div id="postsContainer" class="space-y-4"></div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="hidden">
+            <div class="flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error" class="hidden bg-red-50 p-4 rounded-md">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-red-800">Error</h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <p id="errorMessage"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#redditForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const subreddit = $('#subreddit').val();
+                const timeframe = $('#timeframe').val();
+                
+                // Show loading state
+                $('#loading').removeClass('hidden');
+                $('#results').addClass('hidden');
+                $('#error').addClass('hidden');
+                
+                // Make API request
+                $.ajax({
+                    url: `/reddit/${subreddit}?timeframe=${timeframe}`,
+                    method: 'GET',
+                    success: function(response) {
+                        // Hide loading state
+                        $('#loading').addClass('hidden');
+                        
+                        // Clear previous results
+                        $('#postsContainer').empty();
+                        
+                        // Display results
+                        response.posts.forEach(post => {
+                            const postElement = `
+                                <div class="bg-white shadow rounded-lg p-6">
+                                    <h3 class="text-lg font-medium text-gray-900">${post.title}</h3>
+                                    <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                                        <span>👍 ${post.ups.toLocaleString()} upvotes</span>
+                                        <span>📊 ${(post.upvote_ratio * 100).toFixed(1)}% ratio</span>
+                                    </div>
+                                </div>
+                            `;
+                            $('#postsContainer').append(postElement);
+                        });
+                        
+                        // Show results container
+                        $('#results').removeClass('hidden');
+                    },
+                    error: function(xhr, status, error) {
+                        // Hide loading state
+                        $('#loading').addClass('hidden');
+                        
+                        // Show error message
+                        $('#errorMessage').text(error);
+                        $('#error').removeClass('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

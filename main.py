@@ -1,4 +1,7 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+from pathlib import Path
 from pydantic import BaseModel
 import httpx
 from typing import List, Optional
@@ -9,6 +12,20 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Reddit Data Parser")
+
+# Create templates directory if it doesn't exist
+templates_dir = Path("templates")
+templates_dir.mkdir(exist_ok=True)
+
+# Save the HTML template
+html_path = templates_dir / "index.html"
+# with open(html_path, "w") as f:
+#     f.write("""<!DOCTYPE html>
+# <html lang="en">...""")  # Copy the entire HTML content here
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return html_path.read_text()
 
 # Models
 class RedditPost(BaseModel):
