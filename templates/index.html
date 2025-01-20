@@ -109,13 +109,17 @@
                         
                         // Display results
                         response.posts.forEach(post => {
+                            const postUrl = `https://www.reddit.com/r/${response.subreddit}/comments/${post.name.substring(3)}`; // Remove t3_ prefix
                             const postElement = `
                                 <div class="bg-white shadow rounded-lg p-6">
-                                    <h3 class="text-lg font-medium text-gray-900">${post.title}</h3>
-                                    <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
-                                        <span>👍 ${post.ups.toLocaleString()} upvotes</span>
-                                        <span>📊 ${(post.upvote_ratio * 100).toFixed(1)}% ratio</span>
-                                    </div>
+                                    <a href="${postUrl}" target="_blank" rel="noopener noreferrer" class="block hover:opacity-75">
+                                        <h3 class="text-lg font-medium text-gray-900">${post.title}</h3>
+                                        <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                                            <span>👍 ${post.ups.toLocaleString()} upvotes</span>
+                                            <span>📊 ${(post.upvote_ratio * 100).toFixed(1)}% ratio</span>
+                                            <span>🔗 View on Reddit</span>
+                                        </div>
+                                    </a>
                                 </div>
                             `;
                             $('#postsContainer').append(postElement);
