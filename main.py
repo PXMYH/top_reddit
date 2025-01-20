@@ -29,6 +29,7 @@ class RedditPost(BaseModel):
     title: str
     ups: int
     upvote_ratio: float
+    name: str
 
 class RedditResponse(BaseModel):
     subreddit: str
@@ -75,7 +76,8 @@ def parse_reddit_data(data: dict) -> List[RedditPost]:
                 RedditPost(
                     title=post_data["title"],
                     ups=post_data["ups"],
-                    upvote_ratio=post_data["upvote_ratio"]
+                    upvote_ratio=post_data["upvote_ratio"],
+                    name=post_data["name"]
                 )
             )
         return posts
