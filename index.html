@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Data Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Reddit Data Viewer</h1>
+            <p class="text-gray-600 mt-2">View top posts from selected subreddits</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <form id="redditForm" class="space-y-6">
+                <div>
+                    <label for="subreddit" class="block text-sm font-medium text-gray-700">Subreddit</label>
+                    <select id="subreddit" name="subreddit" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md">
+                        <option value="bogleheads">r/bogleheads</option>
+                        <option value="financialindependence">r/financialindependence</option>
+                        <option value="fire">r/fire</option>
+                        <option value="formula1">r/formula1</option>
+                        <option value="investing">r/investing</option>
+                        <option value="localllama">r/localllama</option>
+                        <option value="personalfinance">r/personalfinance</option>
+                        <option value="personalfinancecanada">r/personalfinancecanada</option>
+                        <option value="stocks">r/stocks</option>
+                        <option value="wealthsimple">r/wealthsimple</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="timeframe" class="block text-sm font-medium text-gray-700">Time Range</label>
+                    <select id="timeframe" name="timeframe" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md">
+                        <option value="hour">Past Hour</option>
+                        <option value="day">Past 24 Hours</option>
+                        <option value="week">Past Week</option>
+                        <option value="month">Past Month</option>
+                        <option value="year" selected>Past Year</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                    Fetch Data
+                </button>
+            </form>
+        </div>
+
+        <div id="results" class="space-y-4 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Results</h2>
+            <div id="postsContainer" class="space-y-4"></div>
+        </div>
+
+        <div id="loading" class="hidden">
+            <div class="flex justify-center items-center py-12">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        </div>
+
+        <div id="error" class="hidden bg-red-50 p-4 rounded-md">
+            <h3 class="text-sm font-medium text-red-800">Error</h3>
+            <p id="errorMessage" class="text-sm text-red-700"></p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#redditForm').on('submit', function (e) {
+                e.preventDefault();
+
+                const subreddit = $('#subreddit').val();
+                const timeframe = $('#timeframe').val();
+
+                $('#loading').removeClass('hidden');
+                $('#results').addClass('hidden');
+                $('#error').addClass('hidden');
+
+                const url = `https://www.reddit.com/r/${subreddit}/top.json?t=${timeframe}`;
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        $('#loading').addClass('hidden');
+                        $('#postsContainer').empty();
+
+                        data.data.children.forEach(postData => {
+                            const post = postData.data;
+                            const postUrl = `https://www.reddit.com${post.permalink}`;
+                            const postElement = `
+                                <div class="bg-white shadow rounded-lg p-6">
+                                    <a href="${postUrl}" target="_blank" class="block hover:opacity-75">
+                                        <h3 class="text-lg font-medium text-gray-900">${post.title}</h3>
+                                        <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                                            <span>👍 ${post.ups} upvotes</span>
+                                            <span>💬 ${post.num_comments} comments</span>
+                                            <span>🔗 View on Reddit</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            `;
+                            $('#postsContainer').append(postElement);
+                        });
+
+                        $('#results').removeClass('hidden');
+                    })
+                    .catch(error => {
+                        $('#loading').addClass('hidden');
+                        $('#errorMessage').text('Failed to fetch data. Please try again.');
+                        $('#error').removeClass('hidden');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>
